@@ -1,0 +1,24 @@
+{
+  "name": "knowbridge",
+  "version": "1.0.0",
+  "description": "KnowBridge - AI-Powered Shared Memory Platform for Teams",
+  "main": "config/db.js",
+  "scripts": {
+    "test:connection": "node scripts/test_connection.js",
+    "test:engine": "node scripts/test_memory_engine.js",
+    "seed": "node scripts/seed.js"
+  },
+  "keywords": [
+    "mongodb",
+    "agentic-memory",
+    "gemini",
+    "knowledge-preservation"
+  ],
+  "author": "KnowBridge Team",
+  "license": "ISC",
+  "dependencies": {
+    "@google/generative-ai": "^0.21.0",
+    "dotenv": "^16.4.7",
+    "mongoose": "^8.9.5"
+  }
+}
