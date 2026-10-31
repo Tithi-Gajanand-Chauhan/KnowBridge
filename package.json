@@ -4,6 +4,9 @@
   "description": "KnowBridge - AI-Powered Shared Memory Platform for Teams",
   "main": "config/db.js",
   "scripts": {
+    "dev": "npm --prefix frontend run dev",
+    "start": "npm --prefix frontend run dev",
+    "build": "npm --prefix frontend run build",
     "test:connection": "node scripts/test_connection.js",
     "test:engine": "node scripts/test_memory_engine.js",
     "seed": "node scripts/seed.js"
