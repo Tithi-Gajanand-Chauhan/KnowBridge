@@ -34,22 +34,20 @@ const createMemory = async (req, res, next) => {
       });
     }
 
-    // Create a new memory document in MongoDB Atlas
-    const memory = await Memory.create({
-      title,
+    // Save memory with 3072-dimensional vector embedding for Atlas Vector Search
+    const memory = await memoryEngine.saveMemory({
+      title: title || (content.length > 50 ? content.substring(0, 47).trim() + '...' : content),
       content,
-      category,
-      type,
-      source,
-      status,
-      workspace,
-      tags,
+      category: category || (type === 'decision' ? 'technical_decision' : category) || 'technical_decision',
+      source: source || 'Team Member',
+      workspace: workspace || 'default',
+      tags: tags || [],
       expires_at
     });
 
     return res.status(201).json({
       success: true,
-      message: 'Memory created successfully!',
+      message: 'Memory created successfully with vector embeddings!',
       data: memory
     });
   } catch (error) {
