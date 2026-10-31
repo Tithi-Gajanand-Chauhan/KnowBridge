@@ -16,8 +16,8 @@ import {
 } from './mockData';
 import { AVATAR_PRESETS, DEFAULT_AVATAR } from './avatars';
 
-// Configurable API root. Defaults to empty string for relative proxy or localhost:5000
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+// Configurable API root. Connects to live Render backend by default.
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://knowbridge-v83x.onrender.com';
 
 // Persistent client storage keys
 export const STORAGE_KEYS = {
