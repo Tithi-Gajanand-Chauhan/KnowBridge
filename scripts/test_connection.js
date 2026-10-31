@@ -9,14 +9,14 @@ async function testConnection() {
 
   // 1. Verify Environment Variables
   console.log('[1/3] Environment Variables:');
-  const hasMongo = Boolean(process.env.MONGODB_URI);
-  const hasGemini = Boolean(process.env.GEMINI_API_KEY);
+  const hasMongo = Boolean(process.env.MONGODB_URI || process.env.MONGO_URI);
+  const hasGemini = Boolean(process.env.GEMINI_API_KEY && !process.env.GEMINI_API_KEY.includes('your_'));
 
   console.log(` - MONGODB_URI: ${hasMongo ? 'CONFIGURED' : 'MISSING'}`);
   console.log(` - GEMINI_API_KEY: ${hasGemini ? 'CONFIGURED' : 'MISSING'}`);
 
   if (!hasMongo) {
-    console.error('❌ MONGODB_URI missing in .env');
+    console.error('❌ MONGODB_URI or MONGO_URI missing in .env');
     process.exit(1);
   }
 

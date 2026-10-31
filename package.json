@@ -2,10 +2,12 @@
   "name": "knowbridge",
   "version": "1.0.0",
   "description": "KnowBridge - AI-Powered Shared Memory Platform for Teams",
-  "main": "config/db.js",
+  "main": "server.js",
   "scripts": {
+    "start": "node server.js",
+    "server": "node server.js",
     "dev": "npm --prefix frontend run dev",
-    "start": "npm --prefix frontend run dev",
+    "frontend": "npm --prefix frontend run dev",
     "build": "npm --prefix frontend run build",
     "test:connection": "node scripts/test_connection.js",
     "test:engine": "node scripts/test_memory_engine.js",
@@ -21,7 +23,9 @@
   "license": "ISC",
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
+    "cors": "^2.8.5",
     "dotenv": "^16.4.7",
+    "express": "^4.21.2",
     "mongoose": "^8.9.5"
   }
 }

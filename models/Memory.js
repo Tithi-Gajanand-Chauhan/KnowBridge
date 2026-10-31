@@ -1,44 +1,59 @@
+// models/Memory.js
+// Enhanced Memory Model for KnowBridge - Shared AI Memory Platform
+// Supports both AI Vector Memory Engine features and backward-compatible CRUD operations.
+
 const mongoose = require('mongoose');
 
-/**
- * Memory Schema for Persistent Team Knowledge
- * Aligned with MongoDB Agentic Memory Track guidelines
- */
 const MemorySchema = new mongoose.Schema(
   {
-    // Short headline or summary for quick scanning
+    // Short headline or summary for quick scanning and AI citations
     title: {
       type: String,
       trim: true,
-      required: [true, 'Memory title is required'],
+      default: function () {
+        // Backward-compatibility: auto-generate title from content if omitted by older clients
+        if (this.content) {
+          return this.content.length > 50
+            ? this.content.substring(0, 47).trim() + '...'
+            : this.content;
+        }
+        return 'Untitled Memory';
+      }
     },
 
-    // Detailed context, decision rationale, or rule
+    // Detailed context, decision rationale, or technical rule
     content: {
       type: String,
       required: [true, 'Memory content is required'],
-      trim: true,
+      trim: true
     },
 
-    // Classification of the knowledge item
+    // Standardized category enum for AI classification and retrieval
     category: {
       type: String,
-      required: [true, 'Memory category is required'],
       enum: [
-        'technical_decision',    // Architectural decisions (e.g. DB choices, framework migrations)
-        'architecture_rule',     // Best practices & coding standards
-        'incident_resolution',   // Post-mortems, bug resolutions, and system fixes
-        'temporary_constraint',  // Sprint freezes, temporary bypasses, scheduled rules
-        'general_knowledge',     // Domain-specific or onboarding context
+        'technical_decision',
+        'architecture_rule',
+        'incident_resolution',
+        'temporary_constraint',
+        'general_knowledge'
       ],
-      default: 'technical_decision',
+      default: 'technical_decision'
     },
 
-    // Who or what originated this memory (e.g., "Rahul (Tech Lead)", "PR #104", "On-call debrief")
+    // Kept for backward-compatibility with older requests that sent `type`
+    type: {
+      type: String,
+      default: 'decision',
+      trim: true
+    },
+
+    // Who or what originated this memory (e.g., "Rahul (Tech Lead)", "PR #104")
     source: {
       type: String,
       required: [true, 'Memory source or author is required'],
-      trim: true,
+      default: 'manual',
+      trim: true
     },
 
     // Team or project namespace for scoping memories
@@ -46,7 +61,7 @@ const MemorySchema = new mongoose.Schema(
       type: String,
       default: 'default',
       trim: true,
-      index: true,
+      index: true
     },
 
     // Lifecycle state of the memory
@@ -54,57 +69,79 @@ const MemorySchema = new mongoose.Schema(
       type: String,
       enum: ['active', 'deprecated', 'conflicted'],
       default: 'active',
-      index: true,
+      index: true
     },
 
-    // Reference to a newer memory that superseded or corrected this one
+    // Reference to a newer memory that superseded or replaced this one
     superseded_by: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Memory',
-      default: null,
+      default: null
     },
 
     // References to conflicting memories identified during review
     conflicts_with: [
       {
         type: mongoose.Schema.Types.ObjectId,
-        ref: 'Memory',
-      },
+        ref: 'Memory'
+      }
     ],
 
-    // Optional tags for quick filtering
+    // Optional tags for keyword search and filtering
     tags: [
       {
         type: String,
-        trim: true,
-      },
+        trim: true
+      }
     ],
 
     // Optional Expiry Date for Time-To-Live (TTL) auto-expiry
-    // When expires_at is set to a past date, MongoDB will automatically clean it up.
+    // When expires_at passes, MongoDB Atlas will automatically clean it up.
     expires_at: {
       type: Date,
       default: null,
       index: {
         expireAfterSeconds: 0,
-        sparse: true, // Only indexes documents where expires_at is present
-      },
+        sparse: true
+      }
     },
 
-    // Placeholder for vector embeddings (will be populated during Vector Search phase)
+    // 3072-dimensional vector embedding for semantic search
     embedding: {
       type: [Number],
       default: undefined,
-      select: false, // Omit raw vector array by default in standard queries for efficiency
-    },
+      select: false // Excluded from standard queries for performance
+    }
   },
   {
-    timestamps: true, // Automatically manages createdAt and updatedAt fields
-    collection: 'memories', // Explicitly maps to the 'memories' collection in MongoDB Atlas
+    timestamps: true, // Automatically manages createdAt and updatedAt
+    collection: 'memories' // Explicitly maps to 'memories' collection in MongoDB Atlas
   }
 );
 
-// Helpful compound index for workspace + status queries
+// Backward-compatibility hook: sync `type` and `category`
+MemorySchema.pre('validate', function () {
+  // If category is not explicitly set but type is provided, map type to valid category
+  if (this.type && (!this.category || this.category === 'technical_decision')) {
+    const typeMapping = {
+      decision: 'technical_decision',
+      constraint: 'temporary_constraint',
+      solution: 'incident_resolution',
+      rule: 'architecture_rule',
+      general: 'general_knowledge'
+    };
+    if (typeMapping[this.type.toLowerCase()]) {
+      this.category = typeMapping[this.type.toLowerCase()];
+    }
+  }
+
+  // If category is provided, keep type synced
+  if (this.category && !this.type) {
+    this.type = this.category;
+  }
+});
+
+// Helpful compound index for fast workspace + status queries
 MemorySchema.index({ workspace: 1, status: 1 });
 
 const Memory = mongoose.model('Memory', MemorySchema);
